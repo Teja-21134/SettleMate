@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import jsPDF from "jspdf";
 
 function Reports() {
@@ -10,21 +10,21 @@ function Reports() {
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
 
-  useEffect(() => {
-  fetchEntries();
+useEffect(() => {
+  let ignore = false;
+
+  api.get("/api/purchases")
+    .then(({ data }) => {
+      if (!ignore) {
+        setEntries(data);
+      }
+    })
+    .catch((error) => console.error(error));
+
+  return () => {
+    ignore = true;
+  };
 }, []);
-
-const fetchEntries = async () => {
-  try {
-    const response = await axios.get(
-      "https://ravi-settle-mate.vercel.app/api/purchases"
-    );
-
-    setEntries(response.data);
-  } catch (error) {
-    console.log(error);
-  }
-};
 
   const loggedInUser =
   localStorage.getItem(

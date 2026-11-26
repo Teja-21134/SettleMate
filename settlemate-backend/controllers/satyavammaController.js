@@ -7,7 +7,7 @@ const getEntries = async (
 ) => {
   try {
     const entries =
-      await Satyavamma.find().sort({
+      await Satyavamma.find({ username: req.auth.username }).sort({
         createdAt: -1,
       });
 
@@ -24,10 +24,10 @@ const createEntry = async (
   res
 ) => {
   try {
-    const entry =
-      await Satyavamma.create(
-        req.body
-      );
+    const entry = await Satyavamma.create({
+      ...req.body,
+      username: req.auth.username,
+    });
 
     res.status(201).json(
       entry
@@ -44,13 +44,15 @@ const updateEntry = async (
   res
 ) => {
   try {
-    const entry =
-      await Satyavamma.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
+    const entry = await Satyavamma.findOneAndUpdate(
+      { _id: req.params.id, username: req.auth.username },
+      { ...req.body, username: req.auth.username },
+      { new: true, runValidators: true }
+    );
 
+    if (!entry) {
+      return res.status(404).json({ message: "Entry not found." });
+    }
     res.json(entry);
   } catch (error) {
     res.status(500).json({
@@ -64,9 +66,14 @@ const deleteEntry = async (
   res
 ) => {
   try {
-    await Satyavamma.findByIdAndDelete(
-      req.params.id
-    );
+    const entry = await Satyavamma.findOneAndDelete({
+      _id: req.params.id,
+      username: req.auth.username,
+    });
+
+    if (!entry) {
+      return res.status(404).json({ message: "Entry not found." });
+    }
 
     res.json({
       message:

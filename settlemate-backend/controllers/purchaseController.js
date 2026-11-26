@@ -3,7 +3,7 @@ const Purchase = require("../models/Purchase");
 const getPurchases = async (req, res) => {
   try {
     const purchases =
-      await Purchase.find().sort({
+      await Purchase.find({ username: req.auth.username }).sort({
         createdAt: -1,
       });
 
@@ -17,8 +17,10 @@ const getPurchases = async (req, res) => {
 
 const createPurchase = async (req, res) => {
   try {
-    const purchase =
-      await Purchase.create(req.body);
+    const purchase = await Purchase.create({
+      ...req.body,
+      username: req.auth.username,
+    });
 
     res.status(201).json(
       purchase
@@ -32,13 +34,15 @@ const createPurchase = async (req, res) => {
 
 const updatePurchase = async (req, res) => {
   try {
-    const purchase =
-      await Purchase.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
+    const purchase = await Purchase.findOneAndUpdate(
+      { _id: req.params.id, username: req.auth.username },
+      { ...req.body, username: req.auth.username },
+      { new: true, runValidators: true }
+    );
 
+    if (!purchase) {
+      return res.status(404).json({ message: "Purchase not found." });
+    }
     res.json(purchase);
   } catch (error) {
     res.status(500).json({
@@ -49,9 +53,14 @@ const updatePurchase = async (req, res) => {
 
 const deletePurchase = async (req, res) => {
   try {
-    await Purchase.findByIdAndDelete(
-      req.params.id
-    );
+    const purchase = await Purchase.findOneAndDelete({
+      _id: req.params.id,
+      username: req.auth.username,
+    });
+
+    if (!purchase) {
+      return res.status(404).json({ message: "Purchase not found." });
+    }
 
     res.json({
       message:

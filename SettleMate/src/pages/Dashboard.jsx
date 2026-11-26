@@ -7,9 +7,22 @@ function Dashboard() {
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="max-w-6xl mx-auto">
 
-        <h1 className="text-4xl font-bold mb-2 text-green-600">
-          SettleMate
-        </h1>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h1 className="text-4xl font-bold text-green-600">
+            SettleMate
+          </h1>
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem("settlemateToken");
+              localStorage.removeItem("loggedInUser");
+              navigate("/");
+            }}
+            className="rounded-lg bg-white px-4 py-2 text-gray-700 shadow hover:bg-gray-50"
+          >
+            Log out
+          </button>
+        </div>
 
         <p className="text-gray-600 mb-8">
           Vendor & Customer Settlement Management System

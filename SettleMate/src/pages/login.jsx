@@ -1,39 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
 
-  if (
-    username === "ravi" &&
-    password === "ravibokam3696"
-  ) {
-    localStorage.setItem(
-      "loggedInUser",
-      "ravi"
-    );
+    try {
+      const { data } = await api.post("/api/auth/login", {
+        username,
+        password,
+      });
 
-    navigate("/dashboard");
-  } else if (
-    username === "guest" &&
-    password === "guest@123"
-  ) {
-    localStorage.setItem(
-      "loggedInUser",
-      "guest"
-    );
-
-    navigate("/dashboard");
-  } else {
-    alert("Invalid Username or Password");
-  }
-};
+      sessionStorage.setItem("settlemateToken", data.token);
+      localStorage.setItem("loggedInUser", data.username);
+      navigate("/dashboard");
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          "Unable to sign in. Please try again."
+      );
+    }
+  };
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
@@ -75,6 +70,12 @@ function Login() {
               className="w-full border rounded-lg p-3"
             />
           </div>
+
+          {errorMessage && (
+            <p className="mb-5 text-sm text-red-600" role="alert">
+              {errorMessage}
+            </p>
+          )}
 
           <button
             type="submit"

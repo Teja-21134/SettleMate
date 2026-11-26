@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-  import axios from "axios";
+  import api from "../api";
 
   function AddEntry() {
   const vendors = [
@@ -86,32 +86,24 @@ import { useEffect, useState } from "react";
     const [entries, setEntries] = useState([]);
 
     useEffect(() => {
-      fetchEntries();
+      let ignore = false;
+
+      api.get("/api/purchases")
+        .then(({ data }) => {
+          if (!ignore) {
+            const loggedInUser =
+              localStorage.getItem("loggedInUser") || "ravi";
+            setEntries(
+              data.filter((entry) => entry.username === loggedInUser)
+            );
+          }
+        })
+        .catch((error) => console.error(error));
+
+      return () => {
+        ignore = true;
+      };
     }, []);
-
-    const fetchEntries = async () => {
-      try {
-        const response = await axios.get(
-         "https://ravi-settle-mate.vercel.app/api/purchases"
-        );
-
-       const loggedInUser =
-  localStorage.getItem(
-    "loggedInUser"
-  ) || "ravi";
-
-setEntries(
-  response.data.filter(
-    (entry) =>
-      entry.username ===
-      loggedInUser
-  )
-);
-
-      } catch (error) {
-        console.log(error);
-      }
-    };
 
     const amount =
       Math.round(
@@ -138,8 +130,8 @@ setEntries(
 
       try {
        if (editId) {
-  const response = await axios.put(
-    `https://ravi-settle-mate.vercel.app/api/purchases/${editId}`,
+  const response = await api.put(
+    `/api/purchases/${editId}`,
     entry
   );
 
@@ -153,8 +145,8 @@ setEntries(
 
   setEditId(null);
 } else {
-  const response = await axios.post(
-    "https://ravi-settle-mate.vercel.app/api/purchases",
+  const response = await api.post(
+    "/api/purchases",
     entry
   );
 
@@ -182,9 +174,7 @@ setEntries(
       }
 
       try {
-       await axios.delete(
-  `https://ravi-settle-mate.vercel.app/api/purchases/${id}`
-);
+       await api.delete(`/api/purchases/${id}`);
 
        setEntries((prev) =>
   prev.filter((item) => item._id !== id)

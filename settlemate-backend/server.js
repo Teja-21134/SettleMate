@@ -3,6 +3,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+const authRoutes = require("./routes/auth");
+const { requireAuth } = require("./auth");
 const purchaseRoutes = require("./routes/purchases");
 const satyavammaRoutes = require("./routes/satyavamma");
 
@@ -34,12 +36,23 @@ app.get("/", (req, res) => {
 
 app.use(
   "/api/purchases",
+  requireAuth,
   purchaseRoutes
 );
 
 app.use(
   "/api/satyavamma",
+  requireAuth,
   satyavammaRoutes
 );
+
+app.use("/api/auth", authRoutes);
+
+if (require.main === module) {
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => {
+    console.log(`SettleMate Backend listening on port ${port}`);
+  });
+}
 
 module.exports = app;

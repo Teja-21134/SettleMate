@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 
 function SatyavammaAddEntry() {
   const items = [
@@ -52,21 +52,31 @@ function SatyavammaAddEntry() {
 
  const [entries, setEntries] = useState([]);
 
-useEffect(() => {
-  fetchEntries();
-}, []);
-
-const fetchEntries = async () => {
+async function fetchEntries() {
   try {
-    const response = await axios.get(
-      "https://ravi-settle-mate.vercel.app/api/satyavamma"
-    );
+    const response = await api.get("/api/satyavamma");
 
     setEntries(response.data);
   } catch (error) {
     console.log(error);
   }
-};
+}
+
+useEffect(() => {
+  let ignore = false;
+
+  api.get("/api/satyavamma")
+    .then(({ data }) => {
+      if (!ignore) {
+        setEntries(data);
+      }
+    })
+    .catch((error) => console.error(error));
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 
   const amount =
     Math.round(
@@ -79,8 +89,8 @@ const fetchEntries = async () => {
 
   try {
     if (editId) {
-     await axios.put(
-  `https://ravi-settle-mate.vercel.app/api/satyavamma/${editId}`,
+     await api.put(
+  `/api/satyavamma/${editId}`,
   {
   username:
   localStorage.getItem(
@@ -95,8 +105,8 @@ const fetchEntries = async () => {
 }
 );
     } else {
-      await axios.post(
-  "https://ravi-settle-mate.vercel.app/api/satyavamma",
+      await api.post(
+  "/api/satyavamma",
   {
   username:
   localStorage.getItem(
@@ -133,9 +143,7 @@ const fetchEntries = async () => {
   }
 
   try {
-   await axios.delete(
-  `https://ravi-settle-mate.vercel.app/api/satyavamma/${id}`
-);
+   await api.delete(`/api/satyavamma/${id}`);
 
     fetchEntries();
   } catch (error) {
